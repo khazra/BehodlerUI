@@ -2,9 +2,11 @@ import * as React from "react"
 import Web3 from "web3"
 import Web3Modal from "web3modal"
 import WalletConnectProvider from "@walletconnect/web3-provider/dist/umd/index.min"
+import { WalletLink } from "walletlink/dist/WalletLink.js"
 import { useState, useEffect } from "react"
 import API from '../../blockchain/ethereumAPI'
 import IContracts, { DefaultContracts } from '../../blockchain/IContracts'
+import coinbaseWalletIcon from '../../customIcons/coinbase-wallet.svg'
 
 interface walletProps {
 	chainId: number
@@ -111,6 +113,37 @@ function WalletContextProvider(props: any) {
 						options: {
 							infuraId: process.env.REACT_APP_INFURA_ID,
 						}
+					},
+					'custom-walletlink': {
+						display: {
+							logo: coinbaseWalletIcon,
+							name: 'Coinbase Wallet',
+							description: 'Scan with WalletLink to connect',
+						},
+						options: {
+							appName: 'behodler.io',
+							infuraId: process.env.REACT_APP_INFURA_ID,
+							darkMode: false,
+						},
+						package: WalletLink,
+						connector: async (_, options) => {
+							const { appName, infuraId } = options
+							const walletLink = new WalletLink({
+								appName
+							});
+							console.info('walletLink', {
+								walletLink,
+								chainId,
+							})
+							const provider = walletLink.makeWeb3Provider(
+								`https://mainnet.infura.io/v3/${infuraId}`,
+								1,
+							)
+							await provider.send('eth_requestAccounts')
+
+							console.info('provider', provider)
+							return provider
+						},
 					},
 				},
 			})
