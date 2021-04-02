@@ -7,6 +7,7 @@ import { useState, useEffect } from "react"
 import API from '../../blockchain/ethereumAPI'
 import IContracts, { DefaultContracts } from '../../blockchain/IContracts'
 import coinbaseWalletIcon from '../../customIcons/coinbase-wallet.svg'
+import * as Portis from "@portis/web3"
 
 interface walletProps {
 	chainId: number
@@ -147,10 +148,19 @@ function WalletContextProvider(props: any) {
 							return walletLinkProvider
 						},
 					},
+					portis: {
+						package: Portis,
+						options: {
+							id: process.env.REACT_APP_PORTIS_ID,
+						}
+					},
 				},
 			})
 			provider = await web3Modal.connect()
 			API.web3 = new Web3(provider)
+
+			console.info('provider', provider);
+			console.info('web3', API.web3);
 		} catch (error) {
 			console.info('Unable to establish wallet connection', error)
 		}
@@ -167,7 +177,11 @@ function WalletContextProvider(props: any) {
 			let chainIdUpdateHandlerOnce = chainIdUpdater(accounts[0], setChainId, setNetworkName, setContracts, () => {})
 			let chainIdUpdateHandler = chainIdUpdater(accounts[0], setChainId, setNetworkName, setContracts, setInitialized)
 
-			chainIdUpdateHandlerOnce(provider.chainId || provider._chainId)
+			const providerChainId = provider.isPortis
+				? provider._portis.config.network.chainId
+				: provider.chainId || provider._chainId
+
+			chainIdUpdateHandlerOnce(providerChainId)
 
 			if (provider && typeof provider.on === 'function') {
 				provider.on("accountsChanged", accountUpdateHandler)
