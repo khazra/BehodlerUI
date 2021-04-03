@@ -55,10 +55,13 @@ let chainIdUpdater = (account: string, setChainId: (id: number) => void, setNetw
 	}
 }
 
-let accountUpdater = (setAccount: (account: string) => void, setConnected: (c: boolean) => void, setInitialized: (boolean) => void) => {
+let accountUpdater = (setAccount: (account: string) => void, setConnected: (c: boolean) => void, setInitialized: (boolean) => void, web3Modal) => {
 	return (accounts: any): string => {
 		if (!accounts || accounts.length === 0) {
 			setConnected(false)
+			if (web3Modal) {
+				web3Modal.clearCachedProvider();
+			}
 			setAccount('0x0')
 			return '0x0'
 		} else {
@@ -117,8 +120,8 @@ function WalletContextProvider(props: any) {
 		if (!provider) { return }
 
 		try {
-			let accountUpdateHandlerOnce = accountUpdater(setAccount, setConnected, () => {})
-			let accountUpdateHandler = accountUpdater(setAccount, setConnected, setInitialized)
+			let accountUpdateHandlerOnce = accountUpdater(setAccount, setConnected, () => {}, null)
+			let accountUpdateHandler = accountUpdater(setAccount, setConnected, setInitialized, web3Modal)
 
 			const accounts = await API.web3.eth.getAccounts()
 			accountUpdateHandlerOnce(accounts)
@@ -160,7 +163,6 @@ function WalletContextProvider(props: any) {
 
 	useEffect(() => {
 		const web3Modal = new Web3Modal({
-			network: networkName || networkNameMapper(chainId) || 'mainnet',
 			cacheProvider: true,
 			providerOptions: {
 				walletconnect: {
