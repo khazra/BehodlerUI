@@ -115,7 +115,7 @@ const initWeb3Modal = () => {
 
 		if (rpcConfig[1] || INFURA_ID) {
 			const walletlinkRPCURL = rpcConfig
-				? rpcConfig[1]
+				? rpcConfig[1] // hardcoded mainnet
 				: `https://mainnet.infura.io/v3/${INFURA_ID}`
 
 			providerOptions['custom-walletlink'] = {
